@@ -10,8 +10,8 @@ RF24 radio(7, 8); // CE, CSN
 const byte address[6] = "00001"; // address needs to be the same for sending/receiving
 
 // joy pins
-// orient pins to the left
-// set a middle value on setup? ( or average between max/min? )
+// orient pins to the right
+// set a median value on setup? ( or average between max/min? )
 int joyY = A0; // middle ~= 494, top = 1023, bottom = 0
 int joyYInit = 494;
 int joyX = A1; // middle ~= 510, far left = 1023, right = 0
@@ -19,7 +19,6 @@ int joyXInit = 510;
 
 // logarithmic
 // header end = 0, opposite = 1023
-// might need to connect other headers for full range of values
 int throttlePin = A2;
 
 // the data that needs to be sent to the plane's receiver
@@ -57,43 +56,46 @@ void setup() {
   // init radio for transmitting
   radio.begin();
   radio.openWritingPipe(address);
-  radio.setPALevel(RF24_PA_HIGH);
+//  radio.setPALevel(RF24_PA_HIGH);
+  radio.setPALevel(RF24_PA_LOW);
   radio.stopListening();
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-
-  // need to math this stuff and get real, workable values
-  data.throttle = analogRead(throttlePin);
-
-//  data.leftServo = analogRead(joyX);
-//  data.rightServo = analogRead(joyY);
-
-//  Serial.println("Sending this:");
-//  Serial.print("Throttle = ");
-//  Serial.println(data.throttle);
-//  Serial.print("Joy X = ");
-//  Serial.println(data.leftServo);
-//  Serial.print("Joy Y = ");
-//  Serial.println(data.rightServo);
-//  Serial.println();
+void loop() {  
+  int val = analogRead(throttlePin);
+  val = map(val, 0, 1023, 1000, 2000);
+  data.throttle = val;
 
   // update servo values based on joystick position before sending
   updateJoys();
   
   radio.write(&data, sizeof(data));
+//  printData();
+  //delay(25);
 }
 
 void updateJoys() {
   int joyXValue = analogRead(joyX);
   int joyYValue = analogRead(joyY);
-  
+
   // find what amount  between -45 and 45 degrees to move right servo
   double rightDegDiff = (((double) joyXValue / joyXInit) * 45) - 45;
   data.rightServo = 90 + (int)rightDegDiff;
 
-  //Serial.println(data.rightServo);
+//  double leftDegDiff = (((double) joyYValue / joyYInit) * 45) - 45;
+//  data.leftServo = 90 + (int)leftDegDiff;
+  data.leftServo = 90 - (int)rightDegDiff;
+
+ // Serial.println(data.leftServo);
+}
+
+void printData() {
+  Serial.print("L: ");
+  Serial.print(data.leftServo);
+  Serial.print(" | R: ");
+  Serial.print(data.rightServo);
+  Serial.print(" | T: ");
+  Serial.println(data.throttle);
 }
 
 
