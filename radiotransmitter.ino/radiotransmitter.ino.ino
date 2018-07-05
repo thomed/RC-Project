@@ -39,21 +39,21 @@ void setup() {
   // init joy
   pinMode(joyX, INPUT);
   pinMode(joyY, INPUT);
-//
-//  // change initial x value if abnormal
-//  if (analogRead(joyX) > joyXInit + 1 || analogRead(joyX) < joyXInit - 1) {
-//    joyXInit = analogRead(joyX);
-//  }
-//
-//  // change initial y value if abnormal
-//  if (analogRead(joyY) > joyYInit + 1 || analogRead(joyY) < joyYInit - 1) {
-//    joyYInit = analogRead(joyY);
-//  }
+  //
+  //  // change initial x value if abnormal
+  //  if (analogRead(joyX) > joyXInit + 1 || analogRead(joyX) < joyXInit - 1) {
+  //    joyXInit = analogRead(joyX);
+  //  }
+  //
+  //  // change initial y value if abnormal
+  //  if (analogRead(joyY) > joyYInit + 1 || analogRead(joyY) < joyYInit - 1) {
+  //    joyYInit = analogRead(joyY);
+  //  }
 
-    // delay to stabilize current (fixed init and joy rest inconsistency)
-    delay(500);
-    joyXInit = analogRead(joyX);
-    joyYInit = analogRead(joyY);
+  // delay to stabilize current (fixed init and joy rest inconsistency)
+  delay(500);
+  joyXInit = analogRead(joyX);
+  joyYInit = analogRead(joyY);
 
   // init throttle potentiometer
   // need to do max/min to calibrate ESC???
@@ -93,29 +93,63 @@ void updateJoys() {
 
   // find what amount  between -45 and 45 degrees to move right servo
   /*
-   * Joy x movement % = joyXValue / joyXInit
-   * 
-   */
-//  Serial.print("X%: ");
-//  Serial.print((double)joyXValue / joyXInit);
-//  Serial.print(" Y%: ");
-//  Serial.println((double)joyYValue / joyYInit);
+     Joy x movement % = joyXValue / joyXInit
 
-  double diffX = (((double)joyXValue / joyXInit) * 45) - 45;
-  double diffY = (((double)joyYValue / joyYInit) * 45) - 45;
-  double diff = (diffX + diffY) / 2;
-  data.rightServo = 90 + (int)diff;
-  data.leftServo = 90 - (int)diff;
+  */
+  //  Serial.print("X%: ");
+  //  Serial.print((double)joyXValue / joyXInit);
+  //  Serial.print(" Y%: ");
+  //  Serial.println((double)joyYValue / joyYInit);
 
-  printRawData(((double)joyXValue / (double)joyXInit), ((double)joyYValue / (double)joyYInit));
-//  printRawData(joyXValue, joyXInit);
+  //  double diffX = (((double)joyXValue / joyXInit) * 45) - 45;
+  //  double diffY = (((double)joyYValue / joyYInit) * 45) - 45;
+  //  double diff = (diffX + diffY) / 2;
+  //  data.rightServo = 90 + (int)diff;
+  //  data.leftServo = 90 - (int)diff;
+
+//  printRawData(((double)joyXValue / (double)joyXInit), ((double)joyYValue / (double)joyYInit));
+  double xOffset = ((double)joyXValue / (double)joyXInit);
+  double yOffset = ((double)joyYValue / (double)joyYInit);
+//  printRawData(xOffset, yOffset);
   
-//  double rightDegDiff = (((double) joyXValue / joyXInit) * 45) - 45;
-//  data.rightServo = 90 + (int)rightDegDiff;
-//
-//  //  double leftDegDiff = (((double) joyYValue / joyYInit) * 45) - 45;
-//  //  data.leftServo = 90 + (int)leftDegDiff;
-//  data.leftServo = 90 - (int)rightDegDiff;
+  // trying to get some flyable values even though it's ugly
+  if (xOffset < 0.80 || xOffset > 1.20) {
+    // joy straightish left, turn straight left
+    if (yOffset > 0.80 && yOffset < 1.20) {
+      data.rightServo = 45 + (xOffset * 45);
+      data.leftServo = data.rightServo;
+    }
+  } 
+  
+
+  if(yOffset < 0.80 || yOffset > 1.20) {
+    if(xOffset > 0.80 && xOffset < 1.20) {
+      data.rightServo = 135 - (yOffset * 45);
+      data.leftServo = 45 + (yOffset * 45);
+    }
+  } 
+
+  if(xOffset >= 0.90 && xOffset <= 1.10 && yOffset >= 0.90 && yOffset <= 1.10) {
+    data.rightServo = 90;
+    data.leftServo = 90;
+  }
+
+
+
+  //
+  //  if(xOffset < 1.00) {
+  //    data.rightServo = 45 + xOffset;
+  //    data.leftServo = 45 + xOffset;
+  //  }
+
+  //  printRawData(joyXValue, joyXInit);
+
+  //  double rightDegDiff = (((double) joyXValue / joyXInit) * 45) - 45;
+  //  data.rightServo = 90 + (int)rightDegDiff;
+  //
+  //  //  double leftDegDiff = (((double) joyYValue / joyYInit) * 45) - 45;
+  //  //  data.leftServo = 90 + (int)leftDegDiff;
+  //  data.leftServo = 90 - (int)rightDegDiff;
 
   // Serial.println(data.leftServo);
 }
