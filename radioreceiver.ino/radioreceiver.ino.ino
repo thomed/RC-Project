@@ -5,10 +5,6 @@
 #include <RF24.h>
 #include <Servo.h>
 
-// pretty sure these are unnecessary to include
-//#include <SPI.h>
-//#include <nRF24L01.h>
-
 RF24 radio(7, 8); // CE, CSN
 Servo rightServo;
 Servo leftServo;
@@ -32,7 +28,6 @@ typedef struct {
 flightData data;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
 
   // init servos at 90deg
@@ -49,13 +44,15 @@ void setup() {
 
   radio.begin();
   radio.openReadingPipe(0, address);
+
+  // ### USE HIGH WHEN NOT TESTING ###
   //  radio.setPALevel(RF24_PA_HIGH);
   radio.setPALevel(RF24_PA_LOW);
+  
   radio.startListening();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   if (radio.available()) {
     // receive flight data from transmitter
     radio.read(&data, sizeof(data));
@@ -65,7 +62,7 @@ void loop() {
     int leftServoValue = leftServo.read();
     int rightServoValue = rightServo.read();
 
-    //if(data.rightServo > rightServo.read() + servoDeadZone || data.rightServo < rightServo.read() - servoDeadZone) {
+    // check that right servo values are kept in range
     if (data.rightServo >= 45 && data.rightServo <= 135) {
       // incrementing/decrementing by one at a time reduces chance of jitter
       if (rightServoValue < data.rightServo) {
@@ -75,8 +72,8 @@ void loop() {
       }
     }
 
+    // check that left servo values are kept in range
     if (data.leftServo >= 45 && data.leftServo <= 135) {
-
       if (leftServoValue < data.leftServo) {
         leftServo.write(leftServoValue + servoSpeed);
       } else if (leftServoValue > data.leftServo) {

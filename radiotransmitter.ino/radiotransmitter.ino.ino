@@ -5,7 +5,6 @@
 
 // transmitter
 #include <RF24.h>
-#include <math.h>
 
 RF24 radio(7, 8); // CE, CSN
 const byte address[6] = "00001"; // address needs to be the same for sending/receiving
@@ -33,22 +32,11 @@ typedef struct {
 flightData data;
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(9600);
 
   // init joy
   pinMode(joyX, INPUT);
   pinMode(joyY, INPUT);
-  //
-  //  // change initial x value if abnormal
-  //  if (analogRead(joyX) > joyXInit + 1 || analogRead(joyX) < joyXInit - 1) {
-  //    joyXInit = analogRead(joyX);
-  //  }
-  //
-  //  // change initial y value if abnormal
-  //  if (analogRead(joyY) > joyYInit + 1 || analogRead(joyY) < joyYInit - 1) {
-  //    joyYInit = analogRead(joyY);
-  //  }
 
   // delay to stabilize current (fixed init and joy rest inconsistency)
   delay(500);
@@ -62,8 +50,11 @@ void setup() {
   // init radio for transmitting
   radio.begin();
   radio.openWritingPipe(address);
+
+  // ### USE HIGH WHEN NOT TESTING ###
   //  radio.setPALevel(RF24_PA_HIGH);
   radio.setPALevel(RF24_PA_LOW);
+
   radio.stopListening();
 }
 
@@ -92,66 +83,34 @@ void updateJoys() {
   int joyYValue = analogRead(joyY);
 
   // find what amount  between -45 and 45 degrees to move right servo
-  /*
-     Joy x movement % = joyXValue / joyXInit
 
-  */
-  //  Serial.print("X%: ");
-  //  Serial.print((double)joyXValue / joyXInit);
-  //  Serial.print(" Y%: ");
-  //  Serial.println((double)joyYValue / joyYInit);
-
-  //  double diffX = (((double)joyXValue / joyXInit) * 45) - 45;
-  //  double diffY = (((double)joyYValue / joyYInit) * 45) - 45;
-  //  double diff = (diffX + diffY) / 2;
-  //  data.rightServo = 90 + (int)diff;
-  //  data.leftServo = 90 - (int)diff;
-
-//  printRawData(((double)joyXValue / (double)joyXInit), ((double)joyYValue / (double)joyYInit));
+  //  printRawData(((double)joyXValue / (double)joyXInit), ((double)joyYValue / (double)joyYInit));
   double xOffset = ((double)joyXValue / (double)joyXInit);
   double yOffset = ((double)joyYValue / (double)joyYInit);
-//  printRawData(xOffset, yOffset);
-  
-  // trying to get some flyable values even though it's ugly
+  //  printRawData(xOffset, yOffset);
+
+  // control roll when significant x offsets are detected
   if (xOffset < 0.80 || xOffset > 1.20) {
     // joy straightish left, turn straight left
     if (yOffset > 0.80 && yOffset < 1.20) {
       data.rightServo = 45 + (xOffset * 45);
       data.leftServo = data.rightServo;
     }
-  } 
-  
+  }
 
-  if(yOffset < 0.80 || yOffset > 1.20) {
-    if(xOffset > 0.80 && xOffset < 1.20) {
+  // control pitch when significant y offsets are detected
+  if (yOffset < 0.80 || yOffset > 1.20) {
+    if (xOffset > 0.80 && xOffset < 1.20) {
       data.rightServo = 135 - (yOffset * 45);
       data.leftServo = 45 + (yOffset * 45);
     }
-  } 
+  }
 
-  if(xOffset >= 0.90 && xOffset <= 1.10 && yOffset >= 0.90 && yOffset <= 1.10) {
+  // When joystick is near center, set servos to neutral positions
+  if (xOffset >= 0.90 && xOffset <= 1.10 && yOffset >= 0.90 && yOffset <= 1.10) {
     data.rightServo = 90;
     data.leftServo = 90;
   }
-
-
-
-  //
-  //  if(xOffset < 1.00) {
-  //    data.rightServo = 45 + xOffset;
-  //    data.leftServo = 45 + xOffset;
-  //  }
-
-  //  printRawData(joyXValue, joyXInit);
-
-  //  double rightDegDiff = (((double) joyXValue / joyXInit) * 45) - 45;
-  //  data.rightServo = 90 + (int)rightDegDiff;
-  //
-  //  //  double leftDegDiff = (((double) joyYValue / joyYInit) * 45) - 45;
-  //  //  data.leftServo = 90 + (int)leftDegDiff;
-  //  data.leftServo = 90 - (int)rightDegDiff;
-
-  // Serial.println(data.leftServo);
 }
 
 void printData() {
