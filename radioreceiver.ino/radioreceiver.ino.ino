@@ -46,46 +46,46 @@ void setup() {
   motorEsc.write(1000);
 
   delay(2000);
-  
+
   radio.begin();
   radio.openReadingPipe(0, address);
-//  radio.setPALevel(RF24_PA_HIGH);
+  //  radio.setPALevel(RF24_PA_HIGH);
   radio.setPALevel(RF24_PA_LOW);
   radio.startListening();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if(radio.available()) {
+  if (radio.available()) {
     // receive flight data from transmitter
     radio.read(&data, sizeof(data));
 
-//    printData();
+    //    printData();
 
     int leftServoValue = leftServo.read();
     int rightServoValue = rightServo.read();
-    
-    //if(data.rightServo > rightServo.read() + servoDeadZone || data.rightServo < rightServo.read() - servoDeadZone) {
-    if(data.rightServo >= 45 && data.rightServo <= 135) {  
-        // incrementing/decrementing by one at a time reduces chance of jitter
-        if(rightServoValue < data.rightServo) {
-          rightServo.write(rightServoValue + servoSpeed);
-        } else if(rightServoValue > data.rightServo) {
-          rightServo.write(rightServoValue - servoSpeed);
-        } 
-    } 
 
-    if(data.leftServo >= 45 && data.leftServo <= 135) {
-        
-        if(leftServoValue < data.leftServo) {
-          leftServo.write(leftServoValue + servoSpeed);
-        } else if(leftServoValue > data.leftServo) {
-          leftServo.write(leftServoValue - servoSpeed);
-        } 
+    //if(data.rightServo > rightServo.read() + servoDeadZone || data.rightServo < rightServo.read() - servoDeadZone) {
+    if (data.rightServo >= 45 && data.rightServo <= 135) {
+      // incrementing/decrementing by one at a time reduces chance of jitter
+      if (rightServoValue < data.rightServo) {
+        rightServo.write(rightServoValue + servoSpeed);
+      } else if (rightServoValue > data.rightServo) {
+        rightServo.write(rightServoValue - servoSpeed);
+      }
     }
 
-    if(data.throttle >= 1010 && data.throttle <= 2000) {
-        motorEsc.write(data.throttle);  
+    if (data.leftServo >= 45 && data.leftServo <= 135) {
+
+      if (leftServoValue < data.leftServo) {
+        leftServo.write(leftServoValue + servoSpeed);
+      } else if (leftServoValue > data.leftServo) {
+        leftServo.write(leftServoValue - servoSpeed);
+      }
+    }
+
+    if (data.throttle >= 1010 && data.throttle <= 2000) {
+      motorEsc.write(data.throttle);
     } else {
       motorEsc.write(1000);
     }
