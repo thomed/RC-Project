@@ -6,20 +6,20 @@
 // transmitter
 #include <RF24.h>
 
-RF24 radio(7, 8); // CE, CSN
+RF24 radio(7, 9); // CE, CSN
 const byte address[6] = "00001"; // address needs to be the same for sending/receiving
 
 // joy pins
 // orient pins to the left
 // set a median value on setup? ( or average between max/min? )
-int joyY = A0; // middle ~= 494, top = 1023, bottom = 0
+int joyY = A2; // middle ~= 494, top = 1023, bottom = 0
 int joyYInit = 494;
-int joyX = A1; // middle ~= 510, far left = 1023, right = 0
+int joyX = A3; // middle ~= 510, far left = 1023, right = 0
 int joyXInit = 510;
 
 // logarithmic
 // header end = 0, opposite = 1023
-int throttlePin = A2;
+int throttlePin = A0;
 
 // the data that needs to be sent to the plane's receiver
 // interpreted/calculated by the inputs from the controller
@@ -67,7 +67,7 @@ void loop() {
   updateJoys();
 
   radio.write(&data, sizeof(data));
-  //  printData();
+//    printData();
   //delay(25);
 }
 
@@ -87,7 +87,7 @@ void updateJoys() {
   //  printRawData(((double)joyXValue / (double)joyXInit), ((double)joyYValue / (double)joyYInit));
   double xOffset = ((double)joyXValue / (double)joyXInit);
   double yOffset = ((double)joyYValue / (double)joyYInit);
-  //  printRawData(xOffset, yOffset);
+//    printRawData(xOffset, yOffset);
 
   // control roll when significant x offsets are detected
   if (xOffset < 0.80 || xOffset > 1.20) {
