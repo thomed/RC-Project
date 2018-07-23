@@ -5,6 +5,8 @@
 
 // transmitter
 #include <RF24.h>
+#include <SPI.h>
+#include <nRF24L01.h>
 
 RF24 radio(7, 9); // CE, CSN
 const byte address[6] = "00001"; // address needs to be the same for sending/receiving
@@ -12,9 +14,9 @@ const byte address[6] = "00001"; // address needs to be the same for sending/rec
 // joy pins
 // orient pins to the left
 // set a median value on setup? ( or average between max/min? )
-int joyY = A2; // middle ~= 494, top = 1023, bottom = 0
+int joyY = A3; // middle ~= 494, top = 1023, bottom = 0
 int joyYInit = 494;
-int joyX = A3; // middle ~= 510, far left = 1023, right = 0
+int joyX = A2; // middle ~= 510, far left = 1023, right = 0
 int joyXInit = 510;
 
 // logarithmic
@@ -37,6 +39,7 @@ void setup() {
   // init joy
   pinMode(joyX, INPUT);
   pinMode(joyY, INPUT);
+  pinMode(10, OUTPUT);
 
   // delay to stabilize current (fixed init and joy rest inconsistency)
   delay(500);
@@ -67,8 +70,8 @@ void loop() {
   updateJoys();
 
   radio.write(&data, sizeof(data));
-//    printData();
-  //delay(25);
+//  printData();
+  delay(5);
 }
 
 /*
@@ -87,7 +90,17 @@ void updateJoys() {
   //  printRawData(((double)joyXValue / (double)joyXInit), ((double)joyYValue / (double)joyYInit));
   double xOffset = ((double)joyXValue / (double)joyXInit);
   double yOffset = ((double)joyYValue / (double)joyYInit);
-//    printRawData(xOffset, yOffset);
+
+  // force in range for cheap joystick
+  if(xOffset > 2.00) {
+    xOffset = 2.00;
+  }
+
+  if(yOffset > 2.00) {
+    yOffset = 2.00;
+  }
+  
+//  printRawData(xOffset, yOffset);
 
   // control roll when significant x offsets are detected
   if (xOffset < 0.80 || xOffset > 1.20) {

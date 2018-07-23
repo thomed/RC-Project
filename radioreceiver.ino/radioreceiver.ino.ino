@@ -16,7 +16,7 @@ int lastLeftServo;
 int lastRightServo;
 
 const int servoDeadzone = 1;
-const int servoSpeed = 2;
+const int servoSpeed = 1;
 
 // the data that needs to be received by the plane
 typedef struct {
@@ -63,8 +63,7 @@ void loop() {
     int rightServoValue = rightServo.read();
 
     // check that right servo values are kept in range
-    if (data.rightServo - servoSpeed >= 45 && data.rightServo + servoSpeed <= 135) {
-      // incrementing/decrementing by one at a time reduces chance of jitter
+    if (data.rightServo >= 45 && data.rightServo <= 135) {
       if (rightServoValue < data.rightServo) {
         rightServo.write(rightServoValue + servoSpeed);
       } else if (rightServoValue > data.rightServo) {
@@ -73,7 +72,7 @@ void loop() {
     }
 
     // check that left servo values are kept in range
-    if (data.leftServo - servoSpeed >= 45 && data.leftServo + servoSpeed <= 135) {
+    if (data.leftServo >= 45 && data.leftServo <= 135) {
       if (leftServoValue < data.leftServo) {
         leftServo.write(leftServoValue + servoSpeed);
       } else if (leftServoValue > data.leftServo) {
@@ -86,10 +85,10 @@ void loop() {
     } else {
       motorEsc.write(1000);
     }
-
-    // delay to slow turns and such down
-    delay(5);
   }
+  
+  // delay to slow turns and such down
+  delay(5);
 }
 
 void printData() {
